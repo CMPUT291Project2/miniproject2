@@ -18,7 +18,7 @@ public class MainTest {
 		fail("Not yet implemented");
 	}
 	
-	@Test
+	//@Test
 	public void testSearchByKey() throws DatabaseException, IOException {
 		Main main = new Main();
 		
@@ -29,11 +29,12 @@ public class MainTest {
 		main.gatherAnswers();
 	}
 	
-	//@Test
+	@Test
 	public void testSearchByData() throws DatabaseException, IOException {
 		Main main = new Main();
 		
 		main.createPopulateDB("btree");
+		main.searchByData();
 		main.destroyDB();
 		main.gatherAnswers();
 	}

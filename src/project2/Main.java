@@ -140,7 +140,7 @@ public class Main {
 				s = "";
 				for ( int j = 0; j < range; j++ ) 
 					s+=(new Character((char)(97+random.nextInt(26)))).toString();
-				//System.out.println("Key: " + s);
+				System.out.println("Key: " + s);
 
 				/* to create a DBT for key */
 				kdbt = new DatabaseEntry(s.getBytes());
@@ -187,7 +187,7 @@ public class Main {
 
 		Cursor cursor = my_table.openCursor(null, null);
 
-		String keyword = "zghxnbujnsztazmnrmrlhjsjfeexohxqotjafliiktlptsquncuejcrebaohblfsqazznheurdqbqbxjmyqr";
+		String keyword = "zghxnbujnsztazmnrmrlhjsjfeexohxqotjafliiktlptsquncuejcrebaohblfsqa";
 
 		key.setData(keyword.getBytes());
 		key.setSize(keyword.length());
@@ -196,16 +196,15 @@ public class Main {
 		System.out.println("Search Status: " + op_status.toString());
 
 
-		op_status = cursor.getSearchKey(key, data, LockMode.DEFAULT);
+		op_status = my_table.get(null, key, data, LockMode.DEFAULT);
 
 		int counter = 0;
-		while (op_status == OperationStatus.SUCCESS)
-		{
+		if (op_status == OperationStatus.SUCCESS) {
 			System.out.println ("Searched Key: " + new String(key.getData()));
 			System.out.println ("Result Data: " + new String(data.getData()));
-			op_status = cursor.getNextDup(key, data, LockMode.DEFAULT);
 			counter++;
 		}
+
 		System.out.println("Total Count for Search By Key: " + counter);
 
 	}
@@ -216,20 +215,27 @@ public class Main {
 
 		Cursor cursor = my_table.openCursor(null, null);
 
-		String keyword = "jzpqaymwwnoqzvxykowdhxvfbuhrsfojivugrmvmybbvurxmdvmrclalzfscmeknyzkqmrcflzdooyupwznvxikermrbicapynwspbbritjyeltywmmslpeuzsmh";
+		String dataword = "opewuyjkkwxdolyybglhhkwwbootrkfpuoxlwongydnzolalnpitgtlilqlchwdlbuedudbtjvvzhiivjtduqjmiyeygsdcenhvedriofacdhxmzydlwulpbqumgozy";
 
-		data.setData(keyword.getBytes());
-		data.setSize(keyword.length());
+		//data.setData(dataword.getBytes());
+		//data.setSize(dataword.length());
 
-		OperationStatus op_status = my_table.get(null, data, key, LockMode.DEFAULT);
-		System.out.println("Search Status: " + op_status.toString());
+		//OperationStatus op_status = my_table.get(null, key, data, LockMode.DEFAULT);
+		//System.out.println("Search Status: " + op_status.toString());
 
+		int counter = 0;
+		while(cursor.getNext(key, data, LockMode.DEFAULT)==OperationStatus.SUCCESS) {
+			String keyString = new String(key.getData());
+	        String dataString = new String(data.getData());
+	        System.out.println("Key | Data : " + keyString + " | " + 
+	                       dataString + "");
+	        if (dataString.equals(dataword)) {
+	        	counter++;
+	        }
+	        
+		}
 
-		op_status = cursor.getSearchKey(key, data, LockMode.DEFAULT);
-		System.out.println("Data: " + new String(data.getData()));
-		System.out.println("Key: " + new String(key.getData()));
-
-		System.out.println("Total Count for Search By Data: " + cursor.count());
+		System.out.println("Total Count for Search By Data: " + counter);
 	}
 	
 	public static void gatherAnswers() throws IOException {
