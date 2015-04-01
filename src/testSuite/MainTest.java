@@ -1,5 +1,6 @@
 package testSuite;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
@@ -13,7 +14,7 @@ import project2.Main;
 
 public class MainTest {
 
-	@Test
+	//@Test
 	public void test() {
 		fail("Not yet implemented");
 	}
@@ -22,11 +23,11 @@ public class MainTest {
 	public void testSearchByKey() throws DatabaseException, IOException {
 		Main main = new Main();
 		
-		main.createPopulateDB("btree");
-		main.searchByKey();
+		main.createPopulateDB("hash");
+		boolean success = main.searchByKey();
 		//main.searchByData();
 		main.destroyDB();
-		main.gatherAnswers();
+		assertTrue(success);
 	}
 	
 	@Test
@@ -36,7 +37,6 @@ public class MainTest {
 		main.createPopulateDB("btree");
 		main.searchByData();
 		main.destroyDB();
-		main.gatherAnswers();
 	}
 
 }
