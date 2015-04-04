@@ -247,14 +247,12 @@ public class Main {
 
 		String dataword = "pmvndcccadcmvjijvcibttitcjvkrgtysvyrthbofxafnntddtgrehfudcyxybzlokplrturvzymryjshclxgryatxdotiainbpgzbynuyecxbqrvoq";
 		DatabaseEntry givenData = new DatabaseEntry(dataword.getBytes());
+		givenData.setSize(dataword.length());
+
 
 		// Initialize cursor for table
 		Cursor cursor = my_table.openCursor(null, null);
 
-		// Dataword to be searched
-
-		//			data.setData(dataword.getBytes());
-		//			data.setSize(dataword.length());
 		ArrayList<String> keyDataList = new ArrayList<String>();
 		int counter = 0;
 
@@ -297,7 +295,7 @@ public class Main {
 		{
 			String keyString = new String(key.getData());
 			String dataString = new String(data.getData());
-			//System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
 			if (givenData.equals(data)) {
 				keyDataList.add(keyString);
 				keyDataList.add(dataString);
@@ -313,18 +311,18 @@ public class Main {
 		//System.out.println("Test Counter: " + testcounter);
 	}
 
-	public static void searchByKeyRangeBTree() throws DatabaseException, IOException {
+	public static int searchByKeyRangeHash() throws DatabaseException, IOException {
 		long startTime = System.nanoTime();
-		boolean success = true;
 
 		DatabaseEntry minKey = new DatabaseEntry();
 		DatabaseEntry maxKey = new DatabaseEntry();
+		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
 
 		Cursor cursor = my_table.openCursor(null, null);
 
-		String minKeyword = "wmmajxmsjzyxkktsbcxgnpgsciupvlsprkdpkegngenelfdqmxuzdqhrkcyteyyafcakaodewzyeongcczpldukytiuwcqhkjelqqvcftazzykiepqcabmutr";
-		String maxKeyword = "zghxnbujnsztazmnrmrlhjsjfeexohxqotjafliiktlptsquncuejcrebaohblfsqazznheurdqbqbxjmyqr";
+		String minKeyword = "zydzqjcmmuklumwqehbphtpcubnoedzepzsgpivhlivbstrxyirjyfjmjbwkzaprlanyvvbtkztqmhdgjnudwnfaoivomxbzoajhmljejbxlwtqizppytbaqnhwiufs";
+		String maxKeyword = "zyhfkxxoyezbprhyvpqtuocjhxunskhioctskyaacafhxdarseypgbzdmxyehqkpnedxgtsditwndxsqdbiahzxwmdgvhofaavgmezeyqjszvskmgnyafqpzubqafso";
 
 		minKey.setData(minKeyword.getBytes());
 		minKey.setSize(minKeyword.length());
@@ -332,20 +330,106 @@ public class Main {
 		maxKey.setData(maxKeyword.getBytes());
 		maxKey.setSize(maxKeyword.length());
 
+		// Testing if min key exists
+		DatabaseEntry testKey = new DatabaseEntry();
+		testKey.setData("zyeaxpostikcxszddhnvhukukvxphqnhwyibkdcuiopepojyhjrppijhvowfwpiptmoenhbhnjvjzcnzwshonijsxdpawmdcvgzxvzxprhqgrmqizppytbaqnhwiufs".getBytes());
+		
+		System.out.println("MIN HASH CODE: " + minKey.getData().hashCode());
+		System.out.println("MAX HASH CODE: " + maxKey.getData().hashCode());
+		System.out.println("TEST HASH CODE: " + testKey.getData().hashCode());
+
+
+
 		ArrayList<String> keyDataList = new ArrayList<String>();
 		int counter = 0;
-		while (cursor.getSearchKeyRange(minKey, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
-		{
-			String keyString = new String(minKey.getData());
-			String dataString = new String(data.getData());
-			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
-			keyDataList.add(keyString);
-			keyDataList.add(dataString);
+//		if (cursor.getSearchKeyRange(minKey, data, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+//			String retKey = new String(minKey.getData());
+//			String retData = new String(data.getData());
+//			keyDataList.add(retKey);
+//			keyDataList.add(retData);
+//			System.out.println("Key | Data : " + retKey + " | " + retData + "");
+//			counter++;
+//			while (cursor.getNext(key, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+//			{
+//				String keyString = new String(key.getData());
+//				String dataString = new String(data.getData());
+//				keyDataList.add(keyString);
+//				keyDataList.add(dataString);
+//				System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+//				counter++;
+//				if (new String(maxKey.getData()).equals(new String(key.getData()))) {
+//					System.out.println("Reached MAX KEY");
+//					break;
+//				}
+//				if (counter > 50) {
+//					System.out.println("OVERFLOW!");
+//					return counter;
+//				}
+//			}
+//		}
+		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the data
+		long elapsedTime = (endTime - startTime)/1000000;
+		System.out.println("Elapsed Time: " + elapsedTime + " ms");
+		gatherAnswers(keyDataList, elapsedTime);
+		System.out.println("Total Count for Search By Data: " + counter);
+		//System.out.println("Test Counter: " + testcounter);
+		return counter;
+
+	}
+
+	public static int searchByKeyRangeBTree() throws DatabaseException, IOException {
+		long startTime = System.nanoTime();
+
+		DatabaseEntry minKey = new DatabaseEntry();
+		DatabaseEntry maxKey = new DatabaseEntry();
+		DatabaseEntry key = new DatabaseEntry();
+		DatabaseEntry data = new DatabaseEntry();
+
+		Cursor cursor = my_table.openCursor(null, null);
+
+		String minKeyword = "zydzqjcmmuklumwqehbphtpcubnoedzepzsgpivhlivbstrxyirjyfjmjbwkzaprlanyvvbtkztqmhdgjnudwnfaoivomxbzoajhmljejbxlwtqizppytbaqnhwiufs";
+		String maxKeyword = "zyhfkxxoyezbprhyvpqtuocjhxunskhioctskyaacafhxdarseypgbzdmxyehqkpnedxgtsditwndxsqdbiahzxwmdgvhofaavgmezeyqjszvskmgnyafqpzubqafso";
+
+		minKey.setData(minKeyword.getBytes());
+		minKey.setSize(minKeyword.length());
+
+		maxKey.setData(maxKeyword.getBytes());
+		maxKey.setSize(maxKeyword.length());
+
+		// Testing if min key exists
+		DatabaseEntry minData = new DatabaseEntry();
+		if(my_table.get(null, minKey , minData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+			System.out.println("Min Key Found!" + minKey.getData());
+
+		}
+
+
+		ArrayList<String> keyDataList = new ArrayList<String>();
+		int counter = 0;
+		if (cursor.getSearchKeyRange(minKey, data, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+			String retKey = new String(minKey.getData());
+			String retData = new String(data.getData());
+			keyDataList.add(retKey);
+			keyDataList.add(retData);
+			System.out.println("Key | Data : " + retKey + " | " + retData + "");
 			counter++;
-			if (maxKey.equals(minKey.getData())) {
-				System.out.println("Reached MAX KEY");
-				break;
-				
+			while (cursor.getNext(key, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+			{
+				String keyString = new String(key.getData());
+				String dataString = new String(data.getData());
+				keyDataList.add(keyString);
+				keyDataList.add(dataString);
+				System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+				counter++;
+				if (new String(maxKey.getData()).equals(new String(key.getData()))) {
+					System.out.println("Reached MAX KEY");
+					break;
+				}
+				if (counter > 50) {
+					System.out.println("OVERFLOW!");
+					return counter;
+				}
 			}
 		}
 		long endTime = System.nanoTime();
@@ -355,6 +439,7 @@ public class Main {
 		gatherAnswers(keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
 		//System.out.println("Test Counter: " + testcounter);
+		return counter;
 
 	}
 

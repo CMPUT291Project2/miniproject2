@@ -41,7 +41,7 @@ public class MainTest {
 		assertTrue(success);
 	}
 
-	//@Test
+//	@Test
 	public void testSearchByDataBTree() throws DatabaseException, IOException {
 		Main main = new Main();
 
@@ -52,7 +52,7 @@ public class MainTest {
 		main.destroyDB();
 	}
 
-	//@Test
+//	@Test
 	public void testSearchByDataHash() throws DatabaseException, IOException {
 		Main main = new Main();
 
@@ -63,16 +63,28 @@ public class MainTest {
 		main.destroyDB();
 	}
 	
-	@Test
+//	@Test
 	public void testSearchByKeyRangeBTree() throws DatabaseException, IOException {
+
+		Main main = new Main();
+
+		System.out.println("B Tree Structure");
+		main.createPopulateDB("btree");
+		int count = main.searchByKeyRangeBTree();
+		main.destroyDB();
+		assertTrue(count < 20 | count == 20);
+	}
+	
+	@Test
+	public void testSearchByKeyRangeHash() throws DatabaseException, IOException {
 
 		Main main = new Main();
 
 		System.out.println("Hash Structure");
 		main.createPopulateDB("hash");
-		main.searchByKeyRangeBTree();
-		//main.searchByData();
+		int count = main.searchByKeyRangeHash();
 		main.destroyDB();
+		assertTrue(count == 10);
 	}
 
 
