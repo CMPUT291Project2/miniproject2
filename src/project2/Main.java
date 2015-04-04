@@ -20,6 +20,8 @@ import com.sleepycat.db.OperationStatus;
 
 
 
+
+
 public class Main {
 
 	/**
@@ -32,7 +34,7 @@ public class Main {
 	private static boolean exit = false;
 	private static int selection;
 
-	public static void main(String[] args) throws FileNotFoundException, DatabaseException {
+	public static void main(String[] args) throws DatabaseException, IOException {
 		// Retrieve db type option
 		db_type_option = args[0];
 		while(shouldNotExit()) {
@@ -53,7 +55,7 @@ public class Main {
 		}
 	}
 
-	private static void performSelection(int selection) throws FileNotFoundException, DatabaseException {
+	private static void performSelection(int selection) throws DatabaseException, IOException {
 		switch(selection) {
 		case 1:
 			System.out.println("Creating Database...");
@@ -61,12 +63,17 @@ public class Main {
 			System.out.println("");
 			break;
 		case 2:
-			// TODO
 			System.out.println("Retrieve Records with Given Key");
+			searchByKey();
 			break;
 		case 3:
 			// TODO
 			System.out.println("Retrieve Records with Given Data");
+			if (db_type_option.equals("btree")) {
+				searchByDataBTree();
+			} else {
+				searchByDataHash();
+			}
 			break;
 		case 4:
 			// TODO
@@ -85,6 +92,8 @@ public class Main {
 		}
 
 	}
+
+
 
 	// Select 1: Create and Populate Database
 	public static void createPopulateDB(String db_type) throws FileNotFoundException, DatabaseException {
@@ -155,14 +164,16 @@ public class Main {
 				for ( int j = 0; j < range; j++ ) 
 					s+=(new Character((char)(97+random.nextInt(26)))).toString();
 				// to print out the key/data pair
-				System.out.println("Data: " + s);	
+				//System.out.println("Data: " + s);	
 				// System.out.println("");
 
 				/* to create a DBT for data */
 				ddbt = new DatabaseEntry(s.getBytes());
 				ddbt.setSize(s.length()); 
 
-				/* to insert the key/data pair into the database */
+				/* to insert the key/data pair into the database 
+				 * if the key does not exist in the database already
+				 */
 				my_table.putNoOverwrite(null, kdbt, ddbt);
 			}
 		}
@@ -181,12 +192,14 @@ public class Main {
 		my_table.remove(DB_TABLE,null,null);
 	}
 
+	// Search the Database using a Key
 	public static boolean searchByKey() throws DatabaseException, IOException {
 		long startTime = System.nanoTime();
 		boolean success = true;
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
 
+		// Search for Keyword
 		String keyword = "upifbjzvdomrijhtvnmwyymfhglzhcsyxttdgjsqrzblznmireugvdamjcsvugqeyy";
 
 		key.setData(keyword.getBytes());
@@ -199,11 +212,13 @@ public class Main {
 		op_status = my_table.get(null, key, data, LockMode.DEFAULT);
 
 		int counter = 0;
+		// Enters the matched key/data pair to an ArrayList to prepare for printing
+		// Also return a boolean for unit testing
 		ArrayList<String> keyDataList = new ArrayList<String>();
 		if (op_status == OperationStatus.SUCCESS) {
 			String keyString = new String(key.getData());
 			String dataString = new String(data.getData());
-			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			//System.out.println("Key | Data : " + keyString + " | " + dataString + "");
 			keyDataList.add(keyString);
 			keyDataList.add(dataString);
 			counter++;
@@ -212,50 +227,96 @@ public class Main {
 			success = false;
 		}
 		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the key
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
+		// Enter the List and Time into a gatherAnswers() function to prepare for printing
 		gatherAnswers(keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Key: " + counter);
 		return success;
 
 	}
 
-	public static void searchByData() throws DatabaseException, IOException {
+
+
+	public static void searchByDataBTree() throws DatabaseException, IOException {
 		long startTime = System.nanoTime();
+
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
+
+		String dataword = "pmvndcccadcmvjijvcibttitcjvkrgtysvyrthbofxafnntddtgrehfudcyxybzlokplrturvzymryjshclxgryatxdotiainbpgzbynuyecxbqrvoq";
+		DatabaseEntry givenData = new DatabaseEntry(dataword.getBytes());
+
+		// Initialize cursor for table
 		Cursor cursor = my_table.openCursor(null, null);
 
-		String dataword = "bdrfnfcpusaekufoilkelpbfhgspdjxwojvpjxsnhtesrccbxnrlpdtogopozqhrbbbbqtgbuuflrmpddgmdkhqzmrhuhhkhwwgvmamwizynizgdvkvnujidhaxdbrj";
+		// Dataword to be searched
 
-		data.setData(dataword.getBytes());
-		data.setSize(dataword.length());
-
-
-		int counter = 0;
+		//			data.setData(dataword.getBytes());
+		//			data.setSize(dataword.length());
 		ArrayList<String> keyDataList = new ArrayList<String>();
-		while(cursor.getNext(key, data, LockMode.DEFAULT)==OperationStatus.SUCCESS) {
+		int counter = 0;
+
+		while (cursor.getNext(key, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+		{
 			String keyString = new String(key.getData());
 			String dataString = new String(data.getData());
-			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
-			if (dataString.equals(dataword)) {
+			//System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			if (givenData.equals(data)) {
 				keyDataList.add(keyString);
 				keyDataList.add(dataString);
 				counter++;
 			}
-
 		}
 		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the data
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
 		gatherAnswers(keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
+		//System.out.println("Test Counter: " + testcounter);
 	}
 
-	public static void searchByKeyRange() throws DatabaseException, IOException {
+	public static void searchByDataHash() throws DatabaseException, IOException {
+		long startTime = System.nanoTime();
+
+		DatabaseEntry key = new DatabaseEntry();
+		DatabaseEntry data = new DatabaseEntry();
+
+		String dataword = "pmvndcccadcmvjijvcibttitcjvkrgtysvyrthbofxafnntddtgrehfudcyxybzlokplrturvzymryjshclxgryatxdotiainbpgzbynuyecxbqrvoq";
+		DatabaseEntry givenData = new DatabaseEntry(dataword.getBytes());
+
+		// Initialize cursor for table
+		Cursor cursor = my_table.openCursor(null, null);
+
+		ArrayList<String> keyDataList = new ArrayList<String>();
+		int counter = 0;
+
+		while (cursor.getNext(key, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+		{
+			String keyString = new String(key.getData());
+			String dataString = new String(data.getData());
+			//System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			if (givenData.equals(data)) {
+				keyDataList.add(keyString);
+				keyDataList.add(dataString);
+				counter++;
+			}
+		}
+		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the data
+		long elapsedTime = (endTime - startTime)/1000000;
+		System.out.println("Elapsed Time: " + elapsedTime + " ms");
+		gatherAnswers(keyDataList, elapsedTime);
+		System.out.println("Total Count for Search By Data: " + counter);
+		//System.out.println("Test Counter: " + testcounter);
+	}
+
+	public static void searchByKeyRangeBTree() throws DatabaseException, IOException {
 		long startTime = System.nanoTime();
 		boolean success = true;
-		
+
 		DatabaseEntry minKey = new DatabaseEntry();
 		DatabaseEntry maxKey = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
@@ -267,37 +328,36 @@ public class Main {
 
 		minKey.setData(minKeyword.getBytes());
 		minKey.setSize(minKeyword.length());
-		
+
 		maxKey.setData(maxKeyword.getBytes());
 		maxKey.setSize(maxKeyword.length());
-		
 
-//		OperationStatus op_status = my_table.get(null, key, data, LockMode.DEFAULT);
-//		System.out.println("Search Status: " + op_status.toString());
-//
-//
-//		op_status = my_table.get(null, key, data, LockMode.DEFAULT);
-//
-//		int counter = 0;
-//		ArrayList<String> keyDataList = new ArrayList<String>();
-//		if (op_status == OperationStatus.SUCCESS) {
-//			String keyString = new String(key.getData());
-//			String dataString = new String(data.getData());
-//			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
-//			keyDataList.add(keyString);
-//			keyDataList.add(dataString);
-//			counter++;
-//			success = true;
-//		} else {
-//			success = false;
-//		}
-//		long endTime = System.nanoTime();
-//		long elapsedTime = (endTime - startTime)/1000000;
-//		System.out.println("Elapsed Time: " + elapsedTime + " ms");
-//		gatherAnswers(keyDataList, elapsedTime);
-//		System.out.println("Total Count for Search By Key: " + counter);
+		ArrayList<String> keyDataList = new ArrayList<String>();
+		int counter = 0;
+		while (cursor.getSearchKeyRange(minKey, data, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+		{
+			String keyString = new String(minKey.getData());
+			String dataString = new String(data.getData());
+			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			keyDataList.add(keyString);
+			keyDataList.add(dataString);
+			counter++;
+			if (maxKey.equals(minKey.getData())) {
+				System.out.println("Reached MAX KEY");
+				break;
+				
+			}
+		}
+		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the data
+		long elapsedTime = (endTime - startTime)/1000000;
+		System.out.println("Elapsed Time: " + elapsedTime + " ms");
+		gatherAnswers(keyDataList, elapsedTime);
+		System.out.println("Total Count for Search By Data: " + counter);
+		//System.out.println("Test Counter: " + testcounter);
+
 	}
-	
+
 	public static void gatherAnswers(ArrayList<String> keyDataList, long elapsedTime) throws IOException {
 		File file_out = new File("answers");
 		FileOutputStream outputStream = new FileOutputStream(file_out);
@@ -319,7 +379,52 @@ public class Main {
 		bw.close();
 	}
 
+
 	private static boolean shouldNotExit() {
 		return !exit;
 	}
+
+	// Search Database by given Data (Deprecated)
+	public static void searchByData() throws DatabaseException, IOException {
+		long startTime = System.nanoTime();
+		DatabaseEntry key = new DatabaseEntry();
+		DatabaseEntry data = new DatabaseEntry();
+
+		// Initialize cursor for table
+		Cursor cursor = my_table.openCursor(null, null);
+
+		// Dataword to be searched
+		String dataword = "bbmnfgntfghyxvcqyxfaquptpsjfbkxhbmieryrldlshglyocdrcvusmqmpcchkzoidslxqblghkyonajugpujoijhsupmo";
+
+		data.setData(dataword.getBytes());
+		data.setSize(dataword.length());
+
+		int counter = 0;
+		ArrayList<String> keyDataList = new ArrayList<String>();
+
+		// Iterate over the entire database until all matches are found
+		// It is possible for the database to have duplicate data values
+		// Therefore, if dataword is found, store key/data pair into ArrayList and increment counter
+		int testcounter = 0;
+		while(cursor.getNext(key, data, LockMode.DEFAULT)==OperationStatus.SUCCESS) {
+			String keyString = new String(key.getData());
+			String dataString = new String(data.getData());
+			System.out.println("Key | Data : " + keyString + " | " + dataString + "");
+			if (dataString.equals(dataword)) {
+				keyDataList.add(keyString);
+				keyDataList.add(dataString);
+				counter++;
+			}
+			testcounter++;
+
+		}
+		long endTime = System.nanoTime();
+		// Gathers the elapsed time it took to search for the data
+		long elapsedTime = (endTime - startTime)/1000000;
+		System.out.println("Elapsed Time: " + elapsedTime + " ms");
+		gatherAnswers(keyDataList, elapsedTime);
+		System.out.println("Total Count for Search By Data: " + counter);
+		System.out.println("Test Counter: " + testcounter);
+	}
+
 }
