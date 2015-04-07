@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -33,10 +34,19 @@ public class Main {
 	private static Database my_table;
 	private static boolean exit = false;
 	private static int selection;
+	private static File file;
 
 	public static void main(String[] args) throws DatabaseException, IOException {
 		// Retrieve db type option
 		db_type_option = args[0];
+		
+		// Open answers file
+		file =new File("answers");
+		// If file doesnt exists, then create it
+		if(!file.exists()){
+			file.createNewFile();
+		}
+		
 		while(shouldNotExit()) {
 			// Create Interface
 			try {
@@ -67,7 +77,6 @@ public class Main {
 			searchByKey();
 			break;
 		case 3:
-			// TODO
 			System.out.println("Retrieve Records with Given Data");
 			if (db_type_option.equals("btree")) {
 				searchByDataBTree();
@@ -76,8 +85,13 @@ public class Main {
 			}
 			break;
 		case 4:
-			// TODO
 			System.out.println("Retrieve Records with Given Range of Keys");
+			if (db_type_option.equals("btree")) {
+				searchByKeyRangeBTree();
+				// TODO
+			} else {
+				searchByKeyRangeHash();
+			}
 			break;
 		case 5:
 			System.out.println("Destroying Database...");
@@ -163,7 +177,7 @@ public class Main {
 				s = "";
 				for ( int j = 0; j < range; j++ ) 
 					s+=(new Character((char)(97+random.nextInt(26)))).toString();
-				// to print out the key/data pair
+				// to print out tfw.close();he key/data pair
 				//System.out.println("Data: " + s);	
 				// System.out.println("");
 
@@ -200,6 +214,8 @@ public class Main {
 		DatabaseEntry data = new DatabaseEntry();
 
 		// Search for Keyword
+//		String keyword =  System.console().readLine("Enter Key value to be searched: ");
+//		System.console().printf("\n");
 		String keyword = "upifbjzvdomrijhtvnmwyymfhglzhcsyxttdgjsqrzblznmireugvdamjcsvugqeyy";
 
 		key.setData(keyword.getBytes());
@@ -231,7 +247,8 @@ public class Main {
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
 		// Enter the List and Time into a gatherAnswers() function to prepare for printing
-		gatherAnswers(keyDataList, elapsedTime);
+		//gatherAnswers(keyDataList, elapsedTime);
+		printResult(file, keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Key: " + counter);
 		return success;
 
@@ -245,6 +262,8 @@ public class Main {
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
 
+//		String dataword =  System.console().readLine("Enter Data value to be searched: ");
+//		System.console().printf("\n");
 		String dataword = "pmvndcccadcmvjijvcibttitcjvkrgtysvyrthbofxafnntddtgrehfudcyxybzlokplrturvzymryjshclxgryatxdotiainbpgzbynuyecxbqrvoq";
 		DatabaseEntry givenData = new DatabaseEntry(dataword.getBytes());
 		givenData.setSize(dataword.length());
@@ -271,7 +290,8 @@ public class Main {
 		// Gathers the elapsed time it took to search for the data
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
-		gatherAnswers(keyDataList, elapsedTime);
+		//gatherAnswers(keyDataList, elapsedTime);
+		printResult(file, keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
 		//System.out.println("Test Counter: " + testcounter);
 	}
@@ -282,6 +302,8 @@ public class Main {
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry data = new DatabaseEntry();
 
+//		String dataword =  System.console().readLine("Enter Data value to be searched: ");
+//		System.console().printf("\n");
 		String dataword = "pmvndcccadcmvjijvcibttitcjvkrgtysvyrthbofxafnntddtgrehfudcyxybzlokplrturvzymryjshclxgryatxdotiainbpgzbynuyecxbqrvoq";
 		DatabaseEntry givenData = new DatabaseEntry(dataword.getBytes());
 
@@ -306,7 +328,8 @@ public class Main {
 		// Gathers the elapsed time it took to search for the data
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
-		gatherAnswers(keyDataList, elapsedTime);
+		//gatherAnswers(keyDataList, elapsedTime);
+		printResult(file, keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
 		//System.out.println("Test Counter: " + testcounter);
 	}
@@ -321,6 +344,10 @@ public class Main {
 
 		Cursor cursor = my_table.openCursor(null, null);
 
+//		String minKeyword =  System.console().readLine("Enter minimum key: ");
+//		System.console().printf("\n");
+//		String maxKeyword =  System.console().readLine("Enter maximum key: ");
+//		System.console().printf("\n");
 		String minKeyword = "zydzqjcmmuklumwqehbphtpcubnoedzepzsgpivhlivbstrxyirjyfjmjbwkzaprlanyvvbtkztqmhdgjnudwnfaoivomxbzoajhmljejbxlwtqizppytbaqnhwiufs";
 		String maxKeyword = "zyhfkxxoyezbprhyvpqtuocjhxunskhioctskyaacafhxdarseypgbzdmxyehqkpnedxgtsditwndxsqdbiahzxwmdgvhofaavgmezeyqjszvskmgnyafqpzubqafso";
 
@@ -371,7 +398,8 @@ public class Main {
 		// Gathers the elapsed time it took to search for the data
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
-		gatherAnswers(keyDataList, elapsedTime);
+		//gatherAnswers(keyDataList, elapsedTime);
+		printResult(file, keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
 		//System.out.println("Test Counter: " + testcounter);
 		return counter;
@@ -387,7 +415,11 @@ public class Main {
 		DatabaseEntry data = new DatabaseEntry();
 
 		Cursor cursor = my_table.openCursor(null, null);
-
+		
+//		String minKeyword =  System.console().readLine("Enter minimum key: ");
+//		System.console().printf("\n");
+//		String maxKeyword =  System.console().readLine("Enter maximum key: ");
+//		System.console().printf("\n");
 		String minKeyword = "zydzqjcmmuklumwqehbphtpcubnoedzepzsgpivhlivbstrxyirjyfjmjbwkzaprlanyvvbtkztqmhdgjnudwnfaoivomxbzoajhmljejbxlwtqizppytbaqnhwiufs";
 		String maxKeyword = "zyhfkxxoyezbprhyvpqtuocjhxunskhioctskyaacafhxdarseypgbzdmxyehqkpnedxgtsditwndxsqdbiahzxwmdgvhofaavgmezeyqjszvskmgnyafqpzubqafso";
 
@@ -436,7 +468,8 @@ public class Main {
 		// Gathers the elapsed time it took to search for the data
 		long elapsedTime = (endTime - startTime)/1000000;
 		System.out.println("Elapsed Time: " + elapsedTime + " ms");
-		gatherAnswers(keyDataList, elapsedTime);
+		//gatherAnswers(keyDataList, elapsedTime);
+		printResult(file, keyDataList, elapsedTime);
 		System.out.println("Total Count for Search By Data: " + counter);
 		//System.out.println("Test Counter: " + testcounter);
 		return counter;
@@ -451,18 +484,46 @@ public class Main {
 		int numRecords = keyDataList.size()/2;
 		String columnNames = String.format("%-30s%-10s\n", "Number of Records Retrieved", "Total Execution Time");
 		String values = String.format("%-30d%-10d\n", numRecords, elapsedTime);
-		bw.write(columnNames);
-		bw.write(values);
+		bw.append(columnNames);
+		bw.append(values);
 		for (int i = 0; i < numRecords; i++) {
-			bw.write(keyDataList.get(i));
+			bw.append(keyDataList.get(i));
 			bw.newLine();
-			bw.write(keyDataList.get(i+1));
+			bw.append(keyDataList.get(i+1));
 			bw.newLine();
 			bw.newLine();
 		}
 
 		bw.close();
 	}
+	
+	public static void printResult(File file, ArrayList<String> keyDataList, long elapsedTime) throws IOException {
+//		String filename= "answers";
+//	    fw = new FileWriter(filename,true); //the true will append the new data
+	    
+	  //true = append file
+		FileWriter fw = new FileWriter(file.getName(),true);
+		BufferedWriter bw = new BufferedWriter(fw);
+
+//		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+		int numRecords = keyDataList.size()/2;
+		String columnNames = String.format("%-30s%-10s\n", "Number of Records Retrieved", "Total Execution Time");
+		String values = String.format("%-30d%-10d ms\n", numRecords, elapsedTime);
+		bw.write(columnNames);
+		bw.write(values);
+		for (int i = 0; i < numRecords; i++) {
+			bw.write(keyDataList.get(i).toString());
+			bw.newLine();
+			bw.write(keyDataList.get(i+1).toString());
+			bw.newLine();
+			bw.newLine();
+		}
+		bw.close();
+
+		
+	}
+	
+	
 
 
 	private static boolean shouldNotExit() {
